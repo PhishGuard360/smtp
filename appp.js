@@ -66,7 +66,7 @@
 // }
 
 // // Endpoint to log data
-// app.post('https://localhost:3000/log', (req, res) => {
+// app.post('https://phish-site.onrender.com/', (req, res) => {
 //     const { userId, timestamp } = req.body;
 
 //     if (!userId || !timestamp) {
@@ -138,7 +138,9 @@
 
 
 
-//-----------------------------------------------------------------------------------------------------------------------
+
+
+//#####################
 
 const express = require('express');
 const fs = require('fs');
@@ -148,11 +150,9 @@ const nodemailer = require('nodemailer');
 const app = express();
 app.use(express.json());
 
-// Nodemailer transporter setup
+// Nodemailer transporter setup with Gmail
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: 'gmail', // Use Gmail's service directly
     auth: {
         user: 'ramlakman98@gmail.com', // Your Gmail address
         pass: 'gzdv ston ffoj btae',   // Your Gmail app password
@@ -197,6 +197,30 @@ app.get('/open-link', (req, res) => {
             res.send(`Duplicate User ID: ${userId}. No logging occurred.`);
         }
     });
+});
+
+// API to send emails
+app.post('/api/send', async (req, res) => {
+    const { to, subject, text } = req.body;
+
+    if (!to || !subject || !text) {
+        return res.status(400).send({ message: 'Missing required fields: to, subject, or text' });
+    }
+
+    try {
+        const info = await transporter.sendMail({
+            from: 'ramlakman98@gmail.com', // Sender address
+            to, // Recipient address
+            subject, // Subject line
+            text, // Plain text body
+        });
+
+        console.log('Email sent: %s', info.messageId);
+        res.status(200).send({ message: 'Email sent successfully', messageId: info.messageId });
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).send({ message: 'Failed to send email', error: error.message });
+    }
 });
 
 // Serve static HTML files
